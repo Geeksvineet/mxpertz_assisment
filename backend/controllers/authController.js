@@ -34,43 +34,69 @@ exports.registerUser = async (req, res) => {
 };
 
 // Login & Authenticate User
-exports.loginUser = async (req, res) => {
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import User from "../models/User.js";
+
+export const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // check if user exists
+    // ✅ Basic validation
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
+
+    // ✅ Check if user exists
     const user = await User.findOne({ username });
-    if (!user)
-      return res.status(400).json({ message: "Invalid username" });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid username or password" });
+    }
 
+    // ✅ Compare password securely
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Invalid password" });
+    if (!isMatch) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid username or password" });
+    }
 
-    // create jwt token
+    // ✅ Create JWT token
     const token = jwt.sign(
       { id: user._id, role: user.role, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    // store token in cookie
-    res
-      .cookie("token", token, {
-        httpOnly: false,
-        secure: false,
-        sameSite: "Lax",
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
-      })
-      .status(200)
-      .json({
-        success: true,
-        message: "Login successful",
-        token,
-        user: { id: user._id, name: user.name, role: user.role },
-      });
+    // ✅ Set cookie securely for production
+    res.cookie("token", token, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production", // only HTTPS in production
+      sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    // ✅ Send safe response
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      user: {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        role: user.role,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Login Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error, please try again later",
+    });
   }
 };
 
