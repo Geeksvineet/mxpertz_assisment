@@ -33,66 +33,34 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// Login & Authenticate User
-export const loginUser = async (req, res) => {
+exports.loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
-
-    // ✅ Basic validation
-    if (!username || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
-    }
-
-    // ✅ Check if user exists
     const user = await User.findOne({ username });
-    if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid username or password" });
-    }
-
-    // ✅ Compare password securely
+    if (!user) return res.status(400).json({ message: "Invalid username" });
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid username or password" });
-    }
-
-    // ✅ Create JWT token
+    if (!isMatch) return res.status(400).json({ message: "Invalid password" });
     const token = jwt.sign(
       { id: user._id, role: user.role, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-
-    // ✅ Set cookie securely for production
-    res.cookie("token", token, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production", // only HTTPS in production
-      sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    });
-
-    // ✅ Send safe response
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        username: user.username,
-        role: user.role,
-      },
-    });
+    res
+      .cookie("token", token, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production", // only HTTPS in production
+        sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .status(200)
+      .json({
+        success: true,
+        message: "Login successful",
+        token,
+        user: { id: user._id, name: user.name, role: user.role },
+      });
   } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error, please try again later",
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
