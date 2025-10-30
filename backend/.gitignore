@@ -1,0 +1,87 @@
+# Node.js dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# Vite cache
+.vite/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Optional npm cache
+.npm/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Debug files
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Local environment overrides
+*.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+
+# React specific
+*.env.development
+*.env.production
+
+# VS Code local settings
+.vscode/
+
+# MongoDB / Database related
+data/
+dump/
+
+# Backend runtime files
+uploads/
+public/uploads/
+storage/
+.cache/
+
+# Next.js / Remix / Gatsby
+.next/
+.cache/
+public/static/
+
+# Lock files (optional, if using one package manager)
+# Uncomment the one you use and comment others
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
