@@ -5,4 +5,17 @@ const api = axios.create({
   withCredentials: true,
 });
 
+api.interceptors.request.use(
+  (config) => {
+    const token = Cookies.get("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.warn("No token found in cookies");
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export default api;
